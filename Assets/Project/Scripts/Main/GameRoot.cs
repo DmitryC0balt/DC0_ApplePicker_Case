@@ -24,6 +24,10 @@ namespace Scripts.Main
         [SerializeField] private RectTransform _gameOverScreen;
         [SerializeField] private TMP_Text _totalScore;
         [SerializeField] private TMP_Text _bestScore;
+        [Space(20)]
+
+        [Header("GamePause UI sets")]
+        [SerializeField] private RectTransform _gamePauseScreen;
 
 
         private Transform _playerStartPosition;
@@ -32,11 +36,14 @@ namespace Scripts.Main
         private StatCounter _statCounter;
         private int _maxScore;
 
+        private bool _pause = false;
+
         //ОСТОРОЖНО!!! Неотрефакторенный код!
         private void Start()
         {
             _gamePlayScreen.gameObject.SetActive(true);
             _gameOverScreen.gameObject.SetActive(false);
+            _gamePauseScreen.gameObject.SetActive(false);
 
             _playerStartPosition = _playerHandler.gameObject.transform;
             _spawnerStartPosition = _spawnerHandler.gameObject.transform;
@@ -56,6 +63,15 @@ namespace Scripts.Main
         }
 
 
+        void Update()
+        {
+            SetPause();
+
+            if (_pause) return;
+            
+        }
+
+
         private void OnDestroy()
         {
             _statCounter.HealthChangingEvent -= ChangeHealthValue;
@@ -71,7 +87,7 @@ namespace Scripts.Main
 
         public void RestartLevel()
         {
-            Debug.Log("Restart button pressed");
+            //Debug.Log("Restart button pressed");
 
             _gamePlayScreen.gameObject.SetActive(true);
             _gameOverScreen.gameObject.SetActive(false);
@@ -108,6 +124,25 @@ namespace Scripts.Main
             }
 
             _bestScore.text = $"{_maxScore}";
+        }
+
+
+        private void SetPause()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                _pause = !_pause;
+
+                if (_pause)
+                {
+                    _gamePauseScreen.gameObject.SetActive(true);
+                    Time.timeScale = 0;
+                    return;
+                }
+
+                _gamePauseScreen.gameObject.SetActive(false);
+                Time.timeScale = 1;
+            }
         }
     }
 }
