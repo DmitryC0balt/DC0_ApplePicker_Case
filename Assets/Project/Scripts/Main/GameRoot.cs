@@ -147,6 +147,7 @@ namespace Scripts.Main
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 _pause = !_pause;
+                HideAllScreens();
                 
                 if (_pause)
                 {
@@ -155,8 +156,7 @@ namespace Scripts.Main
                     return;
                 }
 
-                HideAllScreens();
-                _gamePauseScreen.gameObject.SetActive(false);
+                _gamePlayScreen.gameObject.SetActive(true);
                 Time.timeScale = 1;
             }
         }
