@@ -104,6 +104,7 @@ namespace Scripts.Main
         {
             //Debug.Log("Restart button pressed");
             HideAllScreens();
+            _pause = false;
 
             _gamePlayScreen.gameObject.SetActive(true);
 
