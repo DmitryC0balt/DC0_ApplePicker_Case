@@ -28,6 +28,10 @@ namespace Scripts.Main
 
         [Header("GamePause UI sets")]
         [SerializeField] private RectTransform _gamePauseScreen;
+        [Space(20)]
+
+        [Header("GameTutor UI sets")]
+        [SerializeField] private RectTransform _gameTutorScreen;
 
 
         private Transform _playerStartPosition;
@@ -41,10 +45,6 @@ namespace Scripts.Main
         //ОСТОРОЖНО!!! Неотрефакторенный код!
         private void Start()
         {
-            _gamePlayScreen.gameObject.SetActive(true);
-            _gameOverScreen.gameObject.SetActive(false);
-            _gamePauseScreen.gameObject.SetActive(false);
-
             _playerStartPosition = _playerHandler.gameObject.transform;
             _spawnerStartPosition = _spawnerHandler.gameObject.transform;
 
@@ -60,6 +60,12 @@ namespace Scripts.Main
 
             ChangeHealthValue();
             ChangeScoreValue();
+
+            HideAllScreens();
+            _gameTutorScreen.gameObject.SetActive(true);
+
+            _pause = true;
+            Time.timeScale = 0;
         }
 
 
@@ -85,12 +91,21 @@ namespace Scripts.Main
         private void ChangeScoreValue() => _scoreCount.text = $"{_statCounter.currentScore}";
 
 
+        private void HideAllScreens()
+        {
+            _gamePlayScreen.gameObject.SetActive(false);
+            _gamePauseScreen.gameObject.SetActive(false);
+            _gameOverScreen.gameObject.SetActive(false);
+            _gameTutorScreen.gameObject.SetActive(false);
+        }
+
+
         public void RestartLevel()
         {
             //Debug.Log("Restart button pressed");
+            HideAllScreens();
 
             _gamePlayScreen.gameObject.SetActive(true);
-            _gameOverScreen.gameObject.SetActive(false);
 
             ResetPosition();
 
@@ -132,7 +147,7 @@ namespace Scripts.Main
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 _pause = !_pause;
-
+                
                 if (_pause)
                 {
                     _gamePauseScreen.gameObject.SetActive(true);
@@ -140,6 +155,7 @@ namespace Scripts.Main
                     return;
                 }
 
+                HideAllScreens();
                 _gamePauseScreen.gameObject.SetActive(false);
                 Time.timeScale = 1;
             }
