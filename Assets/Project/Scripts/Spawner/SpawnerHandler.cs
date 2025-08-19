@@ -1,8 +1,9 @@
+using Scripts.Interfaces;
 using UnityEngine;
 
 namespace Scripts.Spawner
 {
-    public class SpawnerHandler : MonoBehaviour
+    public class SpawnerHandler : MonoBehaviour, IProcessable
     {
         [Header("Manual settings")]
         [SerializeField] private GameObject _dropPrefab;
@@ -17,19 +18,6 @@ namespace Scripts.Spawner
         void Start()
         {
             Invoke("DropPrefab",2f);
-        }
-
-
-        void Update()
-        {
-            Move();
-            ChangeDirection();
-        }
-
-
-        void FixedUpdate()
-        {
-            ChangeDirectionRandomly();
         }
 
 
@@ -69,6 +57,14 @@ namespace Scripts.Spawner
             var prefab = Instantiate<GameObject>(_dropPrefab);
             prefab.transform.position = _spawnPoint.position;
             Invoke("DropPrefab", _prefabDropTime);
+        }
+
+
+        public void Process()
+        {
+            Move();
+            ChangeDirection();
+            ChangeDirectionRandomly();
         }
     }
 }

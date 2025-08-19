@@ -1,7 +1,7 @@
 using Scripts.Floor;
 using Scripts.Player;
+using Scripts.Screens;
 using Scripts.Spawner;
-using TMPro;
 using UnityEngine;
 
 namespace Scripts.Main
@@ -14,81 +14,76 @@ namespace Scripts.Main
         [SerializeField] private FloorHandler _floorHandler;
         [Space(20)]
 
-        [Header("GamePlay UI sets")]
-        [SerializeField] private RectTransform _gamePlayScreen;
-        [SerializeField] private TMP_Text _healthCount;
-        [SerializeField] private TMP_Text _scoreCount;
-        [Space(20)]
 
-        [Header("GameOver UI sets")]
-        [SerializeField] private RectTransform _gameOverScreen;
-        [SerializeField] private TMP_Text _totalScore;
-        [SerializeField] private TMP_Text _bestScore;
-        [Space(20)]
-
-        [Header("GamePause UI sets")]
-        [SerializeField] private RectTransform _gamePauseScreen;
-        [Space(20)]
-
-        [Header("GameTutor UI sets")]
-        [SerializeField] private RectTransform _gameTutorScreen;
+        [Header("UI screen settings")]
+        [SerializeField] private GamePlayScreen _gamePlayScreen;
+        [SerializeField] private GamePauseScreen _gamePauseScreen;
+        [SerializeField] private GameOverScreen _gameOverScreen;
+        [SerializeField] private GameManualScreen _gameManualScreen;
 
 
-        private Transform _playerStartPosition;
-        private Transform _spawnerStartPosition;
+        private Vector3 _playerHandlerStartPosition;
+        private Vector3 _spawnerHandlerStartPosition;
+
 
         private StatCounter _statCounter;
         private int _maxScore;
 
-        private bool _pause = false;
 
-        //ОСТОРОЖНО!!! Неотрефакторенный код!
+        private GameStateEnum _gameStateEnum;
+
+        private bool _pause;
+
+
         private void Start()
         {
-            _playerStartPosition = _playerHandler.gameObject.transform;
-            _spawnerStartPosition = _spawnerHandler.gameObject.transform;
+            SetStartPosition();
+            HideAllScreens();
 
-            _statCounter = new StatCounter();
-            _statCounter.RestartPreset(3);
+            _statCounter = new();
+            _statCounter.HealthChangingEvent += ShowHealth;
+            _statCounter.ScoreChangingEvent += ShowScore;
+            _statCounter.OutOfHealthEvent += SetGameOver;
 
             _playerHandler.Initialization(_statCounter);
             _floorHandler.Initialization(_statCounter);
 
-            _statCounter.HealthChangingEvent += ChangeHealthValue;
-            _statCounter.ScoreChangingEvent += ChangeScoreValue;
-            _statCounter.OutOfHealthEvent += SetGameOver;
-
-            ChangeHealthValue();
-            ChangeScoreValue();
-
-            HideAllScreens();
-            _gameTutorScreen.gameObject.SetActive(true);
-
-            _pause = true;
-            Time.timeScale = 0;
+            SetManual();
         }
 
 
         void Update()
         {
-            SetPause();
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (_gameStateEnum == GameStateEnum.MANUAL) return;
 
-            if (_pause) return;
-            
+                _pause = !_pause;
+
+                if (_pause)
+                {
+                    SetPause();
+                    return;
+                }
+
+                SetPlay();
+            }
+        }
+
+
+        private void FixedUpdate()
+        {
+            _spawnerHandler.Process();
+            _playerHandler.Process();
         }
 
 
         private void OnDestroy()
         {
-            _statCounter.HealthChangingEvent -= ChangeHealthValue;
-            _statCounter.ScoreChangingEvent -= ChangeScoreValue;
+            _statCounter.HealthChangingEvent -= ShowHealth;
+            _statCounter.ScoreChangingEvent -= ShowScore;
             _statCounter.OutOfHealthEvent -= SetGameOver;
         }
-
-
-        private void ChangeHealthValue() => _healthCount.text = $"X{_statCounter.currentHealth}";
-
-        private void ChangeScoreValue() => _scoreCount.text = $"{_statCounter.currentScore}";
 
 
         private void HideAllScreens()
@@ -96,70 +91,117 @@ namespace Scripts.Main
             _gamePlayScreen.gameObject.SetActive(false);
             _gamePauseScreen.gameObject.SetActive(false);
             _gameOverScreen.gameObject.SetActive(false);
-            _gameTutorScreen.gameObject.SetActive(false);
+            _gameManualScreen.gameObject.SetActive(false);
         }
 
 
         public void RestartLevel()
         {
-            //Debug.Log("Restart button pressed");
-            HideAllScreens();
-            _pause = false;
+            _statCounter.SetDefaults(3);
 
-            _gamePlayScreen.gameObject.SetActive(true);
+            ShowScore();
+            ShowHealth();
 
             ResetPosition();
+            SetPlay();
+        }
 
-            _statCounter.RestartPreset(3);
-            ChangeHealthValue();
-            ChangeScoreValue();
 
-            Time.timeScale = 1;
+        private void SetStartPosition()
+        {
+            _playerHandlerStartPosition = _playerHandler.transform.position;
+            _spawnerHandlerStartPosition = _spawnerHandler.transform.position;
         }
 
 
         private void ResetPosition()
         {
-            _playerHandler.transform.position = _playerStartPosition.position;
-            _spawnerHandler.transform.position = _spawnerStartPosition.position;
+            _playerHandler.transform.position = _playerHandlerStartPosition;
+            _spawnerHandler.transform.position = _spawnerHandlerStartPosition;
         }
 
 
-        private void SetGameOver()
+        public void SetScore(uint value) => _statCounter.ChangeScore(value);
+
+        public void SetHealth(int value) => _statCounter.ChangeHealth(value);
+
+        public void ShowScore() => _gamePlayScreen.scoreCounter.text = $"{_statCounter.currentScore}";
+
+        public void ShowHealth() => _gamePlayScreen.healthCounter.text = $"{_statCounter.currentHealth}";
+
+        private void ShowMouse(bool isActive) => Cursor.visible = isActive;
+
+        public void SetPlayButton() => SetPlay();
+
+
+        private void CheckScore()
         {
-            Time.timeScale = 0;
-
-            _gamePlayScreen.gameObject.SetActive(false);
-            _gameOverScreen.gameObject.SetActive(true);
-
-            _totalScore.text = $"{_statCounter.currentScore}";
-
             if (_maxScore < _statCounter.currentScore)
             {
                 _maxScore = _statCounter.currentScore;
             }
+        }
 
-            _bestScore.text = $"{_maxScore}";
+
+        private void SetPlay()
+        {
+            _gameStateEnum = GameStateEnum.GAMEPLAY;
+
+            HideAllScreens();
+            Time.timeScale = 1;
+
+            _gamePlayScreen.gameObject.SetActive(true);
+            ShowMouse(false);
         }
 
 
         private void SetPause()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                _pause = !_pause;
-                HideAllScreens();
-                
-                if (_pause)
-                {
-                    _gamePauseScreen.gameObject.SetActive(true);
-                    Time.timeScale = 0;
-                    return;
-                }
+            _gameStateEnum = GameStateEnum.PAUSE;
 
-                _gamePlayScreen.gameObject.SetActive(true);
-                Time.timeScale = 1;
-            }
+            HideAllScreens();
+            Time.timeScale = 0;
+
+            _gamePauseScreen.gameObject.SetActive(true);
+            ShowMouse(true);
+        }
+
+
+        private void SetManual()
+        {
+            _gameStateEnum = GameStateEnum.MANUAL;
+
+            HideAllScreens();
+            Time.timeScale = 0;
+
+            _gameManualScreen.gameObject.SetActive(true);
+            ShowMouse(true);
+        }
+
+
+        private void SetGameOver()
+        {
+            _gameStateEnum = GameStateEnum.GAMEOVER;
+
+            HideAllScreens();
+            Time.timeScale = 0;
+
+            CheckScore();
+            _gameOverScreen.gameObject.SetActive(true);
+
+            _gameOverScreen.totalScoreCounter.text = $"{_statCounter.currentScore}";
+            _gameOverScreen.highScoreCounter.text = $"{_maxScore}";
+
+            ShowMouse(true);
+        }
+
+
+        public enum GameStateEnum
+        {
+            MANUAL,
+            GAMEPLAY,
+            PAUSE,
+            GAMEOVER
         }
     }
 }

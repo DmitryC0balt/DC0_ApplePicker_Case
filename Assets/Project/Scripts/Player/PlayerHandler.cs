@@ -1,16 +1,18 @@
 using Scripts.Drop;
+using Scripts.Interfaces;
 using Scripts.Main;
 using UnityEngine;
 
 namespace Scripts.Player
 {
-    public class PlayerHandler : MonoBehaviour
+    public class PlayerHandler : MonoBehaviour, IProcessable
     {
         private StatCounter _statCounter;
 
         public void Initialization(StatCounter statCounter) => _statCounter = statCounter;
 
-        void FixedUpdate()
+
+        public void Process()
         {
             Move();
         }

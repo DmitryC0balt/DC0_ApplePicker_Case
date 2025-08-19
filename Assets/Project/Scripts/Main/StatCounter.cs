@@ -14,7 +14,7 @@ namespace Scripts.Main
         public int currentScore { get; private set; }
 
 
-        public void RestartPreset(uint value)
+        public void SetDefaults(uint value)
         {
             currentScore = 0;
             currentHealth = (int)value;
