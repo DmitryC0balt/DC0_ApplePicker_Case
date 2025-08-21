@@ -66,16 +66,24 @@ namespace Scripts.Main
 
         private void PauseLogic()
         {
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                if (!_gameStateMashine.isPause)
+
+                if (_gameStateMashine.CurrentGameState != GameStateEnum.GAMEOVER)
                 {
-                    _gameStateMashine.SetPauseState();
-                    return;
+
+                    if (!_gameStateMashine.isPause)
+                    {
+                        _gameStateMashine.SetPauseState();
+                        return;
+                    }
+
+                    _gameStateMashine.SetGameState();
                 }
 
-                _gameStateMashine.SetGameState();
             }
+            
         }
 
 

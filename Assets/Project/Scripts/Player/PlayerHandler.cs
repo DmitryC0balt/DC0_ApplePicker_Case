@@ -35,11 +35,11 @@ namespace Scripts.Player
 
             var sceneMousePosition = Camera.main.ScreenToWorldPoint(screenMousePosition);
 
+            sceneMousePosition.x = Mathf.Clamp(sceneMousePosition.x, -_maxDistance, _maxDistance);
+
             var position = transform.position;
 
             position.x = sceneMousePosition.x;
-
-            position.x = Mathf.Clamp(position.x, -_maxDistance, _maxDistance);
 
             transform.position = position;
         }
