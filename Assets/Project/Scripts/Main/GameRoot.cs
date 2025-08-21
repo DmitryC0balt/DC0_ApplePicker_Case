@@ -1,12 +1,11 @@
 using Scripts.Floor;
 using Scripts.Player;
-using Scripts.Screens;
 using Scripts.Spawner;
 using UnityEngine;
 
 namespace Scripts.Main
 {
-    public class GameRoot : MonoBehaviour
+    public sealed class GameRoot : MonoBehaviour
     {
         [Header("Manual game objects")]
         [SerializeField] private SpawnerHandler _spawnerHandler;
@@ -16,192 +15,100 @@ namespace Scripts.Main
 
 
         [Header("UI screen settings")]
-        [SerializeField] private GamePlayScreen _gamePlayScreen;
-        [SerializeField] private GamePauseScreen _gamePauseScreen;
-        [SerializeField] private GameOverScreen _gameOverScreen;
-        [SerializeField] private GameManualScreen _gameManualScreen;
-
-
-        private Vector3 _playerHandlerStartPosition;
-        private Vector3 _spawnerHandlerStartPosition;
+        [SerializeField] private UIRoot _uiRoot;
 
 
         private StatCounter _statCounter;
-        private int _maxScore;
-
-
-        private GameStateEnum _gameStateEnum;
-
-        private bool _pause;
+        private GameStateMashine _gameStateMashine;
+        private MonoBehaviourCasher _monoBehaviourCasher;
 
 
         private void Start()
         {
-            SetStartPosition();
-            HideAllScreens();
-
             _statCounter = new();
-            _statCounter.HealthChangingEvent += ShowHealth;
-            _statCounter.ScoreChangingEvent += ShowScore;
-            _statCounter.OutOfHealthEvent += SetGameOver;
+            _gameStateMashine = new(_uiRoot, _statCounter);
 
-            _playerHandler.Initialization(_statCounter);
-            _floorHandler.Initialization(_statCounter);
+            _playerHandler.SetStatCounter(_statCounter);
+            _floorHandler.SetStatCounter(_statCounter);
 
-            SetManual();
+            _monoBehaviourCasher = new();
+            _monoBehaviourCasher.AddListener(_playerHandler);
+            _monoBehaviourCasher.AddListener(_spawnerHandler);
+            _monoBehaviourCasher.OnInitialization();
+
+            SetGameEvents();
+            SetGameManual();
         }
 
 
-        void Update()
+        private void Update()
+        {
+            PauseLogic();
+
+            if (_gameStateMashine.isPause) return;
+
+            _monoBehaviourCasher.OnProcess();
+        }
+         
+
+        private void FixedUpdate() => _monoBehaviourCasher.OnFixedProcess();
+        
+        private void LateUpdate() => _monoBehaviourCasher.OnPostProcess();
+
+        public void SetGamePlay() => _gameStateMashine.SetGameState();
+
+        public void SetGameManual() => _gameStateMashine.SetManualState();
+
+        private void OnDestroy() => ResetGameEvents();
+
+        public void QuitGame() => Application.Quit();
+
+
+        private void PauseLogic()
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                if (_gameStateEnum == GameStateEnum.MANUAL) return;
-
-                _pause = !_pause;
-
-                if (_pause)
+                if (!_gameStateMashine.isPause)
                 {
-                    SetPause();
+                    _gameStateMashine.SetPauseState();
                     return;
                 }
 
-                SetPlay();
+                _gameStateMashine.SetGameState();
             }
         }
 
 
-        private void FixedUpdate()
+        private void SetGameEvents()
         {
-            _spawnerHandler.Process();
-            _playerHandler.Process();
+            _statCounter.HealthChangingEvent += _uiRoot.gamePlayScreen.SetHealth;
+            _statCounter.ScoreChangingEvent += _uiRoot.gamePlayScreen.SetScore;
+            _statCounter.OutOfHealthEvent += _gameStateMashine.SetGameOverState;
         }
 
 
-        private void OnDestroy()
+        private void ResetGameEvents()
         {
-            _statCounter.HealthChangingEvent -= ShowHealth;
-            _statCounter.ScoreChangingEvent -= ShowScore;
-            _statCounter.OutOfHealthEvent -= SetGameOver;
-        }
-
-
-        private void HideAllScreens()
-        {
-            _gamePlayScreen.gameObject.SetActive(false);
-            _gamePauseScreen.gameObject.SetActive(false);
-            _gameOverScreen.gameObject.SetActive(false);
-            _gameManualScreen.gameObject.SetActive(false);
+            _statCounter.HealthChangingEvent -= _uiRoot.gamePlayScreen.SetHealth;
+            _statCounter.ScoreChangingEvent -= _uiRoot.gamePlayScreen.SetScore;
+            _statCounter.OutOfHealthEvent -= _gameStateMashine.SetGameOverState;
         }
 
 
         public void RestartLevel()
         {
-            _statCounter.SetDefaults(3);
+            _gameStateMashine.SetGameState();
 
-            ShowScore();
-            ShowHealth();
+            _statCounter.ResetStats(3);
 
-            ResetPosition();
-            SetPlay();
-        }
-
-
-        private void SetStartPosition()
-        {
-            _playerHandlerStartPosition = _playerHandler.transform.position;
-            _spawnerHandlerStartPosition = _spawnerHandler.transform.position;
-        }
-
-
-        private void ResetPosition()
-        {
-            _playerHandler.transform.position = _playerHandlerStartPosition;
-            _spawnerHandler.transform.position = _spawnerHandlerStartPosition;
+            _playerHandler.ResetPosition();
+            _spawnerHandler.ResetPosition();
         }
 
 
         public void SetScore(uint value) => _statCounter.ChangeScore(value);
 
         public void SetHealth(int value) => _statCounter.ChangeHealth(value);
-
-        public void ShowScore() => _gamePlayScreen.scoreCounter.text = $"{_statCounter.currentScore}";
-
-        public void ShowHealth() => _gamePlayScreen.healthCounter.text = $"{_statCounter.currentHealth}";
-
-        private void ShowMouse(bool isActive) => Cursor.visible = isActive;
-
-        public void SetPlayButton() => SetPlay();
-
-
-        private void CheckScore()
-        {
-            if (_maxScore < _statCounter.currentScore)
-            {
-                _maxScore = _statCounter.currentScore;
-            }
-        }
-
-
-        private void SetPlay()
-        {
-            _gameStateEnum = GameStateEnum.GAMEPLAY;
-
-            HideAllScreens();
-            Time.timeScale = 1;
-
-            _gamePlayScreen.gameObject.SetActive(true);
-            ShowMouse(false);
-        }
-
-
-        private void SetPause()
-        {
-            _gameStateEnum = GameStateEnum.PAUSE;
-
-            HideAllScreens();
-            Time.timeScale = 0;
-
-            _gamePauseScreen.gameObject.SetActive(true);
-            ShowMouse(true);
-        }
-
-
-        private void SetManual()
-        {
-            _gameStateEnum = GameStateEnum.MANUAL;
-
-            HideAllScreens();
-            Time.timeScale = 0;
-
-            _gameManualScreen.gameObject.SetActive(true);
-            ShowMouse(true);
-        }
-
-
-        private void SetGameOver()
-        {
-            _gameStateEnum = GameStateEnum.GAMEOVER;
-
-            HideAllScreens();
-            Time.timeScale = 0;
-
-            CheckScore();
-            _gameOverScreen.gameObject.SetActive(true);
-
-            _gameOverScreen.totalScoreCounter.text = $"{_statCounter.currentScore}";
-            _gameOverScreen.highScoreCounter.text = $"{_maxScore}";
-
-            ShowMouse(true);
-        }
-
-
-        public enum GameStateEnum
-        {
-            MANUAL,
-            GAMEPLAY,
-            PAUSE,
-            GAMEOVER
-        }
+        
     }
 }

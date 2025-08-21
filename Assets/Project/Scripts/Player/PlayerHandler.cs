@@ -5,14 +5,23 @@ using UnityEngine;
 
 namespace Scripts.Player
 {
-    public class PlayerHandler : MonoBehaviour, IProcessable
+    public sealed class PlayerHandler : MonoBehaviour, IInitialization, IFixedProcess
     {
+        [Header("Player settings")]
+        [SerializeField] private float _maxDistance;
+
         private StatCounter _statCounter;
 
-        public void Initialization(StatCounter statCounter) => _statCounter = statCounter;
+        private Vector3 _startPosition;
+
+        public void SetStatCounter(StatCounter statCounter) => _statCounter = statCounter;
+
+        public void OnInitialization() => _startPosition = gameObject.transform.position;
+
+        public void ResetPosition() => gameObject.transform.position = _startPosition;
 
 
-        public void Process()
+        public void OnFixedProcess()
         {
             Move();
         }
@@ -29,6 +38,8 @@ namespace Scripts.Player
             var position = transform.position;
 
             position.x = sceneMousePosition.x;
+
+            position.x = Mathf.Clamp(position.x, -_maxDistance, _maxDistance);
 
             transform.position = position;
         }

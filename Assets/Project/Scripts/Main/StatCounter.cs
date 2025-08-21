@@ -5,27 +5,31 @@ namespace Scripts.Main
 {
     public class StatCounter
     {
-        public event Action ScoreChangingEvent;
-        public event Action HealthChangingEvent;
+        public event Action<int> ScoreChangingEvent;
+        public event Action<int> HealthChangingEvent;
         public event Action OutOfHealthEvent;
 
 
         public int currentHealth { get; private set; }
         public int currentScore { get; private set; }
+        public int bestScore { get; private set; }
 
 
-        public void SetDefaults(uint value)
+        public void ResetStats(uint healthValue)
         {
             currentScore = 0;
-            currentHealth = (int)value;
+            currentHealth = (int)healthValue;
             currentHealth = Mathf.Clamp(currentHealth, 0, 5);
+
+            ScoreChangingEvent?.Invoke(currentScore);
+            HealthChangingEvent?.Invoke(currentHealth);
         }
 
 
         public void ChangeHealth(int value)
         {
             currentHealth += value;
-            HealthChangingEvent?.Invoke();
+            HealthChangingEvent?.Invoke(currentHealth);
 
             if (currentHealth == 0)
             {
@@ -38,7 +42,18 @@ namespace Scripts.Main
         {
             currentScore += (int)value;
 
-            ScoreChangingEvent?.Invoke();
+            CheckScore();
+
+            ScoreChangingEvent?.Invoke(currentScore);
+        }
+
+
+        private void CheckScore()
+        {
+            if (bestScore < currentScore)
+            {
+                bestScore = currentScore;
+            }
         }
 
     }

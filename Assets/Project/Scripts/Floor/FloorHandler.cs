@@ -7,7 +7,7 @@ namespace Scripts.Floor
     {
         private StatCounter _statCounter;
 
-        public void Initialization(StatCounter statCounter) => _statCounter = statCounter;
+        public void SetStatCounter(StatCounter statCounter) => _statCounter = statCounter;
 
         void OnCollisionEnter(Collision collision)
         {

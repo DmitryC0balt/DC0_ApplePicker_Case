@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Scripts.Spawner
 {
-    public class SpawnerHandler : MonoBehaviour, IProcessable
+    public class SpawnerHandler : MonoBehaviour, IProcess, IInitialization
     {
         [Header("Manual settings")]
         [SerializeField] private GameObject _dropPrefab;
@@ -13,11 +13,25 @@ namespace Scripts.Spawner
         [SerializeField] private float _prefabDropTime;
         [SerializeField] private Transform _spawnPoint;
 
-        
 
-        void Start()
+        private Vector3 _startPosition;
+
+
+        public void ResetPosition() => gameObject.transform.position = _startPosition;
+
+
+        public void OnInitialization()
         {
-            Invoke("DropPrefab",2f);
+            _startPosition = gameObject.transform.position;
+            Invoke("DropPrefab", 2f);
+        }
+
+
+        public void OnProcess()
+        {
+            Move();
+            ChangeDirection();
+            ChangeDirectionRandomly();
         }
 
 
@@ -57,14 +71,6 @@ namespace Scripts.Spawner
             var prefab = Instantiate<GameObject>(_dropPrefab);
             prefab.transform.position = _spawnPoint.position;
             Invoke("DropPrefab", _prefabDropTime);
-        }
-
-
-        public void Process()
-        {
-            Move();
-            ChangeDirection();
-            ChangeDirectionRandomly();
         }
     }
 }
