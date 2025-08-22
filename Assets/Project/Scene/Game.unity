@@ -1441,9 +1441,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1610125971}
-        m_TargetAssemblyTypeName: Scripts.Main.GameQuit, Assembly-CSharp
-        m_MethodName: TryQuitGame
+      - m_Target: {fileID: 1610125970}
+        m_TargetAssemblyTypeName: Scripts.Main.GameRoot, Assembly-CSharp
+        m_MethodName: QuitGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2000,12 +2000,16 @@ PrefabInstance:
       value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3187507893508957224, guid: e6d284dcef996b64e8633b3cc119049a, type: 3}
+      propertyPath: _distance
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 3187507893508957224, guid: e6d284dcef996b64e8633b3cc119049a, type: 3}
       propertyPath: _spawnPoint
       value: 
       objectReference: {fileID: 1498125808}
     - target: {fileID: 3187507893508957224, guid: e6d284dcef996b64e8633b3cc119049a, type: 3}
       propertyPath: _directionChangingRate
-      value: 0.05
+      value: 0.025
       objectReference: {fileID: 0}
     - target: {fileID: 5893770968845073081, guid: e6d284dcef996b64e8633b3cc119049a, type: 3}
       propertyPath: m_Name
@@ -2815,9 +2819,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1610125971}
-        m_TargetAssemblyTypeName: Scripts.Main.GameQuit, Assembly-CSharp
-        m_MethodName: TryQuitGame
+      - m_Target: {fileID: 1610125970}
+        m_TargetAssemblyTypeName: Scripts.Main.GameRoot, Assembly-CSharp
+        m_MethodName: QuitGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3431,9 +3435,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1610125971}
-        m_TargetAssemblyTypeName: Scripts.Main.GameQuit, Assembly-CSharp
-        m_MethodName: TryQuitGame
+      - m_Target: {fileID: 1610125970}
+        m_TargetAssemblyTypeName: Scripts.Main.GameRoot, Assembly-CSharp
+        m_MethodName: QuitGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4176,6 +4180,7 @@ GameObject:
   - component: {fileID: 1610125969}
   - component: {fileID: 1610125970}
   - component: {fileID: 1610125971}
+  - component: {fileID: 1610125972}
   m_Layer: 0
   m_Name: GameRoot
   m_TagString: Untagged
@@ -4226,6 +4231,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468b38b86689acd4d94c35174b1caab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1610125972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1610125968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e025c8a543909f54cbf8d7316a4a74bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _prefab: {fileID: 2814524511933253878, guid: 3c4132980c6db9a479d8a1aef3a08a6f, type: 3}
+  _container: {fileID: 545424898}
+  _capacity: 5
+  _isExpandable: 1
 --- !u!1 &1723096370
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using Scripts.Drop;
 using Scripts.Main;
 using UnityEngine;
 
@@ -12,7 +13,9 @@ namespace Scripts.Floor
         void OnCollisionEnter(Collision collision)
         {
             _statCounter.ChangeHealth(-1);
-            Destroy(collision.gameObject);
+
+            var dropHandler = collision.gameObject.GetComponent<DropHandler>();
+            dropHandler.ShutDown();
         }
     }
 }

@@ -1,4 +1,5 @@
 using Scripts.Interfaces;
+using Scripts.Pool;
 using UnityEngine;
 
 namespace Scripts.Spawner
@@ -14,16 +15,20 @@ namespace Scripts.Spawner
         [SerializeField] private Transform _spawnPoint;
 
 
+        private PoolService<PoolableObject> _dropPool;
+
+
         private Vector3 _startPosition;
 
 
         public void ResetPosition() => gameObject.transform.position = _startPosition;
 
+        public void SetPool(PoolService<PoolableObject> pool) => _dropPool = pool;
 
         public void OnInitialization()
         {
             _startPosition = gameObject.transform.position;
-            Invoke("DropPrefab", 2f);
+            Invoke("DropPrefabFromPool", 2f);
         }
 
 
@@ -71,6 +76,14 @@ namespace Scripts.Spawner
             var prefab = Instantiate<GameObject>(_dropPrefab);
             prefab.transform.position = _spawnPoint.position;
             Invoke("DropPrefab", _prefabDropTime);
+        }
+
+
+        private void DropPrefabFromPool()
+        {
+            var prefab = _dropPool.GetFormular();
+            prefab.transform.position = _spawnPoint.position;
+            Invoke("DropPrefabFromPool", _prefabDropTime);
         }
     }
 }

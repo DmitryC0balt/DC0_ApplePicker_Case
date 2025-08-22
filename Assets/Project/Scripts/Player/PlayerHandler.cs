@@ -52,7 +52,8 @@ namespace Scripts.Player
 
             _statCounter.ChangeScore(scoreValue);
 
-            Destroy(collision.gameObject);            
+            var dropHandler = collision.gameObject.GetComponent<DropHandler>();
+            dropHandler.ShutDown();
         }
 
     }

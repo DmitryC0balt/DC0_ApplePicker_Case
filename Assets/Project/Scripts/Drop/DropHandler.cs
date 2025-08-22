@@ -1,16 +1,21 @@
+using Scripts.Pool;
 using UnityEngine;
 
 namespace Scripts.Drop
 {
-    public class DropHandler : MonoBehaviour
+    public class DropHandler : PoolableObject
     {
         [SerializeField] private uint _scoreValue;
 
         public uint scoreValue => _scoreValue;
 
-        void OnCollisionEnter(Collision collision)
+        public override void ShutDown()
         {
-            Destroy(gameObject);
+            var rigidbody = GetComponent<Rigidbody>();
+            rigidbody.linearVelocity = Vector3.zero;
+            rigidbody.angularVelocity = Vector3.zero;
+
+            base.ShutDown();
         }
     }
 }

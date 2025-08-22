@@ -45,6 +45,13 @@ namespace Scripts.Pool
         }
 
 
+        private void RemoveFormular(Formular formular)
+        {
+            _formularList.Remove(formular);
+            Object.Destroy(formular.gameObject);
+        }
+
+
         private bool TryGetFormular(out Formular formular)
         {
             foreach (var prefab in _formularList)
@@ -75,6 +82,12 @@ namespace Scripts.Pool
             }
 
             throw new System.Exception($"No more {_formular.name} in pool!");
+        }
+
+
+        private void CheckFormularList()
+        {
+
         }
     }
 }

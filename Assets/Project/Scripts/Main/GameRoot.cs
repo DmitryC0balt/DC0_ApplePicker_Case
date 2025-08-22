@@ -1,5 +1,6 @@
 using Scripts.Floor;
 using Scripts.Player;
+using Scripts.Pool;
 using Scripts.Spawner;
 using UnityEngine;
 
@@ -17,27 +18,33 @@ namespace Scripts.Main
         [Header("UI screen settings")]
         [SerializeField] private UIRoot _uiRoot;
 
-
         private StatCounter _statCounter;
         private GameStateMashine _gameStateMashine;
         private MonoBehaviourCasher _monoBehaviourCasher;
+        private DropPoolHandler _dropPoolHandler;
 
 
         private void Start()
         {
             _statCounter = new();
+
             _gameStateMashine = new(_uiRoot, _statCounter);
+
+            _dropPoolHandler = GetComponent<DropPoolHandler>();
 
             _playerHandler.SetStatCounter(_statCounter);
             _floorHandler.SetStatCounter(_statCounter);
 
+            SetGameEvents();
+            SetGameManual();
+
             _monoBehaviourCasher = new();
+            _monoBehaviourCasher.AddListener(_dropPoolHandler);
             _monoBehaviourCasher.AddListener(_playerHandler);
             _monoBehaviourCasher.AddListener(_spawnerHandler);
             _monoBehaviourCasher.OnInitialization();
 
-            SetGameEvents();
-            SetGameManual();
+            _spawnerHandler.SetPool(_dropPoolHandler.poolService);
         }
 
 
@@ -51,9 +58,15 @@ namespace Scripts.Main
         }
          
 
+        #region CASH_LOGIC
+
         private void FixedUpdate() => _monoBehaviourCasher.OnFixedProcess();
         
         private void LateUpdate() => _monoBehaviourCasher.OnPostProcess();
+
+        #endregion
+
+
 
         public void SetGamePlay() => _gameStateMashine.SetGameState();
 
@@ -66,24 +79,18 @@ namespace Scripts.Main
 
         private void PauseLogic()
         {
+            if (_gameStateMashine.CurrentGameState == GameStateEnum.MANUAL) return; 
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
 
-                if (_gameStateMashine.CurrentGameState != GameStateEnum.GAMEOVER)
-                {
-
-                    if (!_gameStateMashine.isPause)
-                    {
-                        _gameStateMashine.SetPauseState();
-                        return;
-                    }
-
-                    _gameStateMashine.SetGameState();
-                }
-
             }
-            
+        }
+
+
+        private void PoolInitialization()
+        {
+
         }
 
 
